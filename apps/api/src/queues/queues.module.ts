@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { BullBoardModule } from '@bull-board/nestjs';
-import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JobQueue } from '../modules/posts/entities/job-queue.entity';
 
@@ -37,17 +35,9 @@ const queueList = Object.values(QUEUE_NAMES);
   imports: [
     TypeOrmModule.forFeature([JobQueue]),
 
-    // ── Register all queues ──────────────────────────────────────
+    // ── Register all BullMQ queues ───────────────────────────────
     ...queueList.map((name) =>
       BullModule.registerQueue({ name }),
-    ),
-
-    // ── Register Bull Board adapters for each queue ──────────────
-    ...queueList.map((name) =>
-      BullBoardModule.forFeature({
-        name,
-        adapter: BullMQAdapter,
-      }),
     ),
   ],
   exports: [BullModule],

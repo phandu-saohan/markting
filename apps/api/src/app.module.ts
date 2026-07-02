@@ -2,8 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
-import { BullBoardModule } from '@bull-board/nestjs';
-import { ExpressAdapter } from '@bull-board/express';
 import { QueuesModule } from './queues/queues.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -28,14 +26,18 @@ import { EmailListsModule } from './modules/email-lists/email-lists.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
+        url: config.get('DATABASE_URL'),
         host: config.get('DB_HOST', 'localhost'),
         port: config.get<number>('DB_PORT', 5432),
         database: config.get('DB_NAME', 'marketing_db'),
         username: config.get('DB_USER', 'postgres'),
         password: config.get('DB_PASS', 'postgres'),
         autoLoadEntities: true,
-        synchronize: config.get('NODE_ENV') === 'development',
-        logging: config.get('NODE_ENV') === 'development',
+        synchronize: false,
+        logging: false,
+        ssl: config.get('DB_SSL') === 'true'
+          ? { rejectUnauthorized: false }
+          : false,
       }),
     }),
 
@@ -59,12 +61,6 @@ import { EmailListsModule } from './modules/email-lists/email-lists.module';
           },
         },
       }),
-    }),
-
-    // ── Bull Board UI ────────────────────────────────────────────────
-    BullBoardModule.forRoot({
-      route: '/admin/queues',
-      adapter: ExpressAdapter,
     }),
 
     // ── Feature Modules ──────────────────────────────────────────────
