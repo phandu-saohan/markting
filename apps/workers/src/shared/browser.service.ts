@@ -2,12 +2,12 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Browser, Page } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin = require('puppeteer-extra-plugin-stealth');
-import AnonymizeUAPlugin from 'puppeteer-extra-plugin-anonymize-ua';
+import AnonymizeUAPlugin = require('puppeteer-extra-plugin-anonymize-ua');
 import { ConfigService } from '@nestjs/config';
 
 // Áp dụng stealth plugin để qua mặt bot detection
 puppeteer.use(StealthPlugin());
-puppeteer.use(AnonymizeUAPlugin());
+puppeteer.use((AnonymizeUAPlugin as any)());
 
 export interface BrowserOptions {
   proxyUrl?: string;       // format: http://user:pass@host:port
