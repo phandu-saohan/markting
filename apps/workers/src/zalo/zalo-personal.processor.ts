@@ -77,7 +77,7 @@ export class ZaloPersonalProcessor extends WorkerHost {
     this.logger.log(`[Job ${job.id}] Starting Zalo personal diary post via Appium`);
 
     await this.jobQueueRepo.update(jobQueueId, {
-      status: 'active',
+      status: 'active' as any,
       startedAt: new Date(),
     });
 
@@ -113,14 +113,14 @@ export class ZaloPersonalProcessor extends WorkerHost {
 
       // ── Xác nhận thành công ──────────────────────────────────────
       await this.postRepo.update(postId, {
-        status: 'posted' as any,
+        status: 'posted' as any as any,
         postedAt: new Date(),
       });
 
       await this.jobQueueRepo.update(jobQueueId, {
-        status: 'completed',
+        status: 'completed' as any,
         finishedAt: new Date(),
-        result: { postedAt: new Date().toISOString() },
+        result: { postedAt: new Date().toISOString() } as any,
       });
 
       this.logger.log(`✅ [Job ${job.id}] Zalo personal post published`);
@@ -131,7 +131,7 @@ export class ZaloPersonalProcessor extends WorkerHost {
       this.logger.error(`❌ [Job ${job.id}] Zalo Appium error: ${errMsg}`);
 
       await this.jobQueueRepo.update(jobQueueId, {
-        status: 'failed',
+        status: 'failed' as any,
         error: errMsg,
       });
 

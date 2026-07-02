@@ -46,7 +46,7 @@ export class FbFanpageProcessor extends WorkerHost {
     const { jobQueueId, postId, accountId, pageId, content, mediaUrls } = job.data;
 
     await this.jobQueueRepo.update(jobQueueId, {
-      status: 'active',
+      status: 'active' as any,
       startedAt: new Date(),
     });
 
@@ -78,15 +78,15 @@ export class FbFanpageProcessor extends WorkerHost {
 
     // ── Cập nhật DB ──────────────────────────────────────────────
     await this.postRepo.update(postId, {
-      status: 'posted',
+      status: 'posted' as any,
       postedAt: new Date(),
       externalPostId: fbPostId,
     });
 
     await this.jobQueueRepo.update(jobQueueId, {
-      status: 'completed',
+      status: 'completed' as any,
       finishedAt: new Date(),
-      result: { fbPostId },
+      result: { fbPostId } as any,
     });
 
     this.logger.log(`✅ [Job ${job.id}] Posted to fanpage ${pageId}: ${fbPostId}`);
@@ -179,7 +179,7 @@ export class FbFanpageProcessor extends WorkerHost {
   async onFailed(job: Job<PostToFanpageJobData>, err: Error) {
     this.logger.error(`❌ Fanpage post job ${job.id} failed: ${err.message}`);
     await this.jobQueueRepo.update(job.data.jobQueueId, {
-      status: 'failed',
+      status: 'failed' as any,
       error: err.message,
     });
   }

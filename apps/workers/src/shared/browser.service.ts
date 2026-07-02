@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import puppeteer, { Browser, Page } from 'puppeteer-extra';
+import { Browser, Page } from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import AnonymizeUAPlugin from 'puppeteer-extra-plugin-anonymize-ua';
 import { ConfigService } from '@nestjs/config';

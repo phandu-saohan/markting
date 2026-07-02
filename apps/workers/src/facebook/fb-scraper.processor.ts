@@ -104,7 +104,7 @@ export class FbScraperProcessor extends WorkerHost {
 
       // Nếu lỗi do checkpoint/captcha, đánh dấu account
       if (this.isCheckpointError(error)) {
-        await this.accountRepo.update(accountId, { status: 'checkpoint' });
+        await this.accountRepo.update(accountId, { status: 'checkpoint' as any });
         this.logger.warn(`Account ${accountId} hit checkpoint!`);
       }
 

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, Not } from 'typeorm';
-import { Proxy } from '../../modules/proxies/entities/proxy.entity';
+import { Proxy } from '../../../api/src/modules/proxies/entities/proxy.entity';
 
 @Injectable()
 export class ProxyService {

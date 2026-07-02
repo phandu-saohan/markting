@@ -91,7 +91,7 @@ export class EmailBulkProcessor extends WorkerHost {
     );
 
     await this.jobQueueRepo.update(jobQueueId, {
-      status: 'active',
+      status: 'active' as any,
       startedAt: new Date(),
     });
 
@@ -152,16 +152,16 @@ export class EmailBulkProcessor extends WorkerHost {
 
     // ── Cập nhật kết quả vào DB ─────────────────────────────────
     await this.jobQueueRepo.update(jobQueueId, {
-      status: failed === recipients.length ? 'failed' : 'completed',
+      status: (failed === recipients.length ? 'failed' : 'completed') as any,
       finishedAt: new Date(),
-      result: { sent, failed, totalInBatch: recipients.length },
+      result: { sent, failed, totalInBatch: recipients.length } as any,
       error: errors.length > 0 ? errors.slice(0, 5).join('\n') : undefined,
     });
 
     // Nếu đây là batch cuối, cập nhật post status
     if (batchIndex === totalBatches - 1 && failed < recipients.length) {
       await this.postRepo.update(postId, {
-        status: 'posted',
+        status: 'posted' as any,
         postedAt: new Date(),
       });
     }

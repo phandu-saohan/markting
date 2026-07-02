@@ -61,7 +61,7 @@ export class FbGroupPostProcessor extends WorkerHost {
 
     // ── Cập nhật trạng thái job ──────────────────────────────────
     await this.jobQueueRepo.update(jobQueueId, {
-      status: 'active',
+      status: 'active' as any,
       startedAt: new Date(),
       attempts: job.attemptsMade + 1,
     });
@@ -103,7 +103,7 @@ export class FbGroupPostProcessor extends WorkerHost {
 
       // Kiểm tra có bị login redirect không
       if (page.url().includes('/login')) {
-        await this.accountRepo.update(accountId, { status: 'checkpoint' });
+        await this.accountRepo.update(accountId, { status: 'checkpoint' as any });
         throw new Error('CHECKPOINT: Session expired');
       }
 
@@ -154,7 +154,7 @@ export class FbGroupPostProcessor extends WorkerHost {
       });
 
       if (hasCheckpoint) {
-        await this.accountRepo.update(accountId, { status: 'checkpoint' });
+        await this.accountRepo.update(accountId, { status: 'checkpoint' as any });
         throw new Error('CHECKPOINT: Identity verification required');
       }
 
@@ -162,14 +162,14 @@ export class FbGroupPostProcessor extends WorkerHost {
 
       // ── Cập nhật DB sau khi đăng thành công ──────────────────
       await this.postRepo.update(postId, {
-        status: 'posted',
+        status: 'posted' as any,
         postedAt: new Date(),
       });
 
       await this.jobQueueRepo.update(jobQueueId, {
-        status: 'completed',
+        status: 'completed' as any,
         finishedAt: new Date(),
-        result: { groupId: fbGroupId, postedAt: new Date().toISOString() },
+        result: { groupId: fbGroupId, postedAt: new Date().toISOString() } as any,
       });
 
       this.logger.log(`✅ [Job ${job.id}] Posted to group ${fbGroupId}`);
@@ -178,12 +178,12 @@ export class FbGroupPostProcessor extends WorkerHost {
       const errMsg = error instanceof Error ? error.message : String(error);
 
       await this.jobQueueRepo.update(jobQueueId, {
-        status: 'failed',
+        status: 'failed' as any,
         error: errMsg,
       });
 
       if (job.attemptsMade + 1 >= (job.opts.attempts ?? 3)) {
-        await this.postRepo.update(postId, { status: 'failed', errorLog: errMsg });
+        await this.postRepo.update(postId, { status: 'failed' as any, errorLog: errMsg });
       }
 
       throw error;
