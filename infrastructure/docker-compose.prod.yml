@@ -12,29 +12,9 @@
 
 services:
 
-  # ── PostgreSQL ─────────────────────────────────────────────────
-  postgres:
-    image: postgres:16-alpine
-    container_name: ma_postgres
-    restart: always
-    environment:
-      POSTGRES_DB: ${DB_NAME:-marketing_db}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASS}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks:
-      - internal
-      - dokploy-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-marketing_db}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
   # ── Redis ───────────────────────────────────────────────────────
+  # NOTE: PostgreSQL đã được thay bằng Supabase self-hosted
+  # Kết nối qua DB_HOST / DATABASE_URL trong environment variables
   redis:
     image: redis:7-alpine
     container_name: ma_redis
@@ -59,14 +39,14 @@ services:
     container_name: ma_api
     restart: always
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
-      DB_HOST: postgres
+      # Kết nối Supabase PostgreSQL qua connection string
+      DATABASE_URL: ${DATABASE_URL}
+      DB_HOST: ${DB_HOST}
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-marketing_db}
       DB_USER: ${DB_USER:-postgres}
@@ -104,13 +84,12 @@ services:
     container_name: ma_workers
     restart: always
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      DB_HOST: postgres
+      DATABASE_URL: ${DATABASE_URL}
+      DB_HOST: ${DB_HOST}
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-marketing_db}
       DB_USER: ${DB_USER:-postgres}
@@ -161,8 +140,6 @@ services:
     # Nhớ thêm Basic Auth qua Traefik middleware để bảo mật!
 
 volumes:
-  postgres_data:
-    driver: local
   redis_data:
     driver: local
 
