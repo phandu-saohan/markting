@@ -11,7 +11,6 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/workers/package.json ./apps/workers/
-COPY packages/ ./packages/
 
 RUN pnpm install --frozen-lockfile --filter workers...
 

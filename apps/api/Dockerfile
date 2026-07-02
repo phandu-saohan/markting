@@ -11,7 +11,6 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/
-COPY packages/ ./packages/
 
 RUN pnpm install --frozen-lockfile --filter api...
 
