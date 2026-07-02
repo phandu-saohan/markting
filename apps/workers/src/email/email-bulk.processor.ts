@@ -11,8 +11,8 @@ import {
 import * as sgMail from '@sendgrid/mail';
 import * as Handlebars from 'handlebars';
 import { QUEUE_NAMES } from '../../../api/src/queues/queues.module';
-import { Post } from '../../api/src/modules/posts/entities/post.entity';
-import { JobQueue } from '../../api/src/modules/posts/entities/job-queue.entity';
+import { Post } from '../../../api/src/modules/posts/entities/post.entity';
+import { JobQueue } from '../../../api/src/modules/posts/entities/job-queue.entity';
 
 interface EmailBatchJobData {
   jobQueueId: string;

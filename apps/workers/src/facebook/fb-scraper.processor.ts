@@ -8,8 +8,8 @@ import { QUEUE_NAMES, JOB_NAMES } from '../../../api/src/queues/queues.module';
 import { BrowserService } from '../shared/browser.service';
 import { ProxyService } from '../shared/proxy.service';
 import { CookieService } from '../shared/cookie.service';
-import { Account } from '../../api/src/modules/accounts/entities/account.entity';
-import { Group } from '../../api/src/modules/groups/entities/group.entity';
+import { Account } from '../../../api/src/modules/accounts/entities/account.entity';
+import { Group } from '../../../api/src/modules/groups/entities/group.entity';
 
 interface ScrapeGroupsJobData {
   userId: string;

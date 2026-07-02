@@ -6,9 +6,9 @@ import { Job } from 'bullmq';
 import axios from 'axios';
 import { QUEUE_NAMES, JOB_NAMES } from '../../../api/src/queues/queues.module';
 import { CookieService } from '../shared/cookie.service';
-import { Account } from '../../api/src/modules/accounts/entities/account.entity';
-import { Post } from '../../api/src/modules/posts/entities/post.entity';
-import { JobQueue } from '../../api/src/modules/posts/entities/job-queue.entity';
+import { Account } from '../../../api/src/modules/accounts/entities/account.entity';
+import { Post } from '../../../api/src/modules/posts/entities/post.entity';
+import { JobQueue } from '../../../api/src/modules/posts/entities/job-queue.entity';
 
 interface PostToFanpageJobData {
   jobQueueId: string;

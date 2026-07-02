@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { Job } from 'bullmq';
 import * as wdio from 'webdriverio';
 import { QUEUE_NAMES } from '../../../api/src/queues/queues.module';
-import { Post } from '../../api/src/modules/posts/entities/post.entity';
-import { JobQueue } from '../../api/src/modules/posts/entities/job-queue.entity';
+import { Post } from '../../../api/src/modules/posts/entities/post.entity';
+import { JobQueue } from '../../../api/src/modules/posts/entities/job-queue.entity';
 
 // ================================================================
 // ZALO PERSONAL DIARY PROCESSOR
