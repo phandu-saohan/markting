@@ -3,6 +3,13 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
 
+// ── Shared Entities ───────────────────────────────────────────────
+import { Proxy } from '../../api/src/modules/proxies/entities/proxy.entity';
+import { Account } from '../../api/src/modules/accounts/entities/account.entity';
+import { Group } from '../../api/src/modules/groups/entities/group.entity';
+import { Post } from '../../api/src/modules/posts/entities/post.entity';
+import { JobQueue } from '../../api/src/modules/posts/entities/job-queue.entity';
+
 // ── Processors ────────────────────────────────────────────────────
 import { FbScraperProcessor } from './facebook/fb-scraper.processor';
 import { FbGroupPostProcessor } from './facebook/fb-group-post.processor';
@@ -41,6 +48,8 @@ const QUEUE_NAMES = {
       autoLoadEntities: true,
       synchronize: false,
     }),
+
+    TypeOrmModule.forFeature([Proxy, Account, Group, Post, JobQueue]),
 
     BullModule.forRoot({
       connection: {
