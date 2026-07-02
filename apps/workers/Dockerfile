@@ -12,7 +12,7 @@ RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/workers/package.json ./apps/workers/
 
-RUN pnpm install --frozen-lockfile --filter workers...
+RUN pnpm install --no-frozen-lockfile --filter workers...
 
 # ── Stage 2: Build ────────────────────────────────────
 FROM node:22-alpine AS builder
