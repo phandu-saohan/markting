@@ -56,4 +56,4 @@ USER workers
 HEALTHCHECK --interval=60s --timeout=10s --start-period=60s --retries=3 \
   CMD pgrep node || exit 1
 
-CMD ["node", "dist/apps/workers/src/main.js"]
+CMD ["node", "dist/workers/src/main.js"]
