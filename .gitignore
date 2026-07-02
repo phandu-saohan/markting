@@ -1,0 +1,41 @@
+# .gitignore — Marketing Automation Platform
+
+# ── Environment ───────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Node.js ───────────────────────────────────────────
+node_modules/
+dist/
+build/
+.turbo/
+
+# ── Logs ──────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+pnpm-debug.log*
+
+# ── TypeScript ────────────────────────────────────────
+*.tsbuildinfo
+
+# ── OS ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editor ────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ── Docker ────────────────────────────────────────────
+# Không ignore docker-compose files (cần cho deploy)
+
+# ── Puppeteer ─────────────────────────────────────────
+.cache/
+/tmp/
+
+# ── Database ──────────────────────────────────────────
+*.sqlite
+*.db

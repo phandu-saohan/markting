@@ -1,0 +1,177 @@
+# ══════════════════════════════════════════════════════════════════
+# docker-compose.prod.yml — Dokploy Production Deployment
+# ══════════════════════════════════════════════════════════════════
+# Hướng dẫn deploy Dokploy:
+#   1. Push code lên GitHub
+#   2. Dokploy → New Project → Docker Compose
+#   3. Compose Path: infrastructure/docker-compose.prod.yml
+#   4. Thêm env vars trong tab "Environment" của Dokploy UI
+#   5. Domain: Vào tab "Domains" → thêm api.yourdomain.com
+#   6. Click Deploy
+# ══════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: ma_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-marketing_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - internal
+      - dokploy-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-marketing_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Redis ───────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: ma_redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── NestJS API ─────────────────────────────────────────────────
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      target: production
+    container_name: ma_api
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-marketing_db}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FB_APP_ID: ${FB_APP_ID}
+      FB_APP_SECRET: ${FB_APP_SECRET}
+      FB_GRAPH_API_VERSION: ${FB_GRAPH_API_VERSION:-v19.0}
+      FRONTEND_URL: ${FRONTEND_URL}
+    expose:
+      - "3000"
+    networks:
+      - internal
+      - dokploy-network
+    # Dokploy sẽ tự inject Traefik labels qua UI → Domains tab
+    # Hoặc bật manual labels bên dưới:
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.docker.network=dokploy-network"
+    #   - "traefik.http.routers.ma-api.rule=Host(`api.yourdomain.com`)"
+    #   - "traefik.http.routers.ma-api.entrypoints=websecure"
+    #   - "traefik.http.routers.ma-api.tls.certresolver=letsencrypt"
+    #   - "traefik.http.services.ma-api.loadbalancer.server.port=3000"
+
+  # ── Workers (Puppeteer + Queue Processors) ─────────────────────
+  workers:
+    build:
+      context: ..
+      dockerfile: apps/workers/Dockerfile
+      target: production
+    container_name: ma_workers
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-marketing_db}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      CHROME_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      HEADLESS: "true"
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-ses}
+      TIKTOK_CLIENT_KEY: ${TIKTOK_CLIENT_KEY}
+      TIKTOK_CLIENT_SECRET: ${TIKTOK_CLIENT_SECRET}
+      YOUTUBE_CLIENT_ID: ${YOUTUBE_CLIENT_ID}
+      YOUTUBE_CLIENT_SECRET: ${YOUTUBE_CLIENT_SECRET}
+      ZALO_OA_APP_ID: ${ZALO_OA_APP_ID}
+      ZALO_OA_SECRET: ${ZALO_OA_SECRET}
+    # Puppeteer cần shared memory
+    shm_size: '1gb'
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp:unconfined
+    networks:
+      - internal
+
+  # ── Bull Board (Queue Monitor UI) ──────────────────────────────
+  bull-board:
+    image: deadly0/bull-board:latest
+    container_name: ma_bull_board
+    restart: always
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    expose:
+      - "3000"
+    networks:
+      - internal
+      - dokploy-network
+    # Domain cho Bull Board: admin.yourdomain.com (thêm qua Dokploy UI)
+    # Nhớ thêm Basic Auth qua Traefik middleware để bảo mật!
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  # Internal network (services giao tiếp nội bộ, không expose ra ngoài)
+  internal:
+    driver: bridge
+    internal: true
+
+  # Dokploy managed network (Traefik có thể route traffic vào)
+  dokploy-network:
+    external: true
