@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "start": "pnpm --filter api run start",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "db:migrate": "pnpm --filter api run migration:run",
