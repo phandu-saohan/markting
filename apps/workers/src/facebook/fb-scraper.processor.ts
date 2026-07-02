@@ -227,7 +227,7 @@ export class FbScraperProcessor extends WorkerHost {
           groupId: g.groupId,
           groupName: g.groupName,
           memberCount: g.memberCount,
-          privacy: g.privacy,
+          privacy: g.privacy as any,
           keywords,
           lastScraped: new Date(),
         })
