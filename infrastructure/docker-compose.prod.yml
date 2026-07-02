@@ -1,36 +1,22 @@
-# ══════════════════════════════════════════════════════════════════
-# docker-compose.prod.yml — Dokploy Production Deployment
-# ══════════════════════════════════════════════════════════════════
-# Hướng dẫn deploy Dokploy:
-#   1. Push code lên GitHub
-#   2. Dokploy → New Project → Docker Compose
-#   3. Compose Path: infrastructure/docker-compose.prod.yml
-#   4. Thêm env vars trong tab "Environment" của Dokploy UI
-#   5. Domain: Vào tab "Domains" → thêm api.yourdomain.com
-#   6. Click Deploy
-# ══════════════════════════════════════════════════════════════════
-
 services:
 
-  # ── Redis ───────────────────────────────────────────────────────
-  # NOTE: PostgreSQL đã được thay bằng Supabase self-hosted
-  # Kết nối qua DB_HOST / DATABASE_URL trong environment variables
+  # ── Redis ──────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: ma_redis
     restart: always
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
     networks:
       - internal
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # ── NestJS API ─────────────────────────────────────────────────
+  # ── NestJS API ─────────────────────────────────────────────────────
   api:
     build:
       context: ..
@@ -44,38 +30,38 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      # Kết nối Supabase PostgreSQL qua connection string
       DATABASE_URL: ${DATABASE_URL}
       DB_HOST: ${DB_HOST}
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-marketing_db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-postgres}
       DB_USER: ${DB_USER:-postgres}
       DB_PASS: ${DB_PASS}
+      DB_SSL: ${DB_SSL:-false}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_PASSWORD: ""
       JWT_SECRET: ${JWT_SECRET}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-      FB_APP_ID: ${FB_APP_ID}
-      FB_APP_SECRET: ${FB_APP_SECRET}
+      FB_APP_ID: ${FB_APP_ID:-placeholder}
+      FB_APP_SECRET: ${FB_APP_SECRET:-placeholder}
       FB_GRAPH_API_VERSION: ${FB_GRAPH_API_VERSION:-v19.0}
-      FRONTEND_URL: ${FRONTEND_URL}
+      ZALO_OA_APP_ID: ${ZALO_OA_APP_ID:-placeholder}
+      ZALO_OA_SECRET: ${ZALO_OA_SECRET:-placeholder}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-ses}
+      AWS_REGION: ${AWS_REGION:-ap-southeast-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-placeholder}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-placeholder}
+      SES_FROM_EMAIL: ${SES_FROM_EMAIL:-noreply@example.com}
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      HEADLESS: "true"
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     expose:
       - "3000"
     networks:
       - internal
       - dokploy-network
-    # Dokploy sẽ tự inject Traefik labels qua UI → Domains tab
-    # Hoặc bật manual labels bên dưới:
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.docker.network=dokploy-network"
-    #   - "traefik.http.routers.ma-api.rule=Host(`api.yourdomain.com`)"
-    #   - "traefik.http.routers.ma-api.entrypoints=websecure"
-    #   - "traefik.http.routers.ma-api.tls.certresolver=letsencrypt"
-    #   - "traefik.http.services.ma-api.loadbalancer.server.port=3000"
 
-  # ── Workers (Puppeteer + Queue Processors) ─────────────────────
+  # ── Workers (Puppeteer + Queue Processors) ──────────────────────────
   workers:
     build:
       context: ..
@@ -90,28 +76,23 @@ services:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
       DB_HOST: ${DB_HOST}
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-marketing_db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-postgres}
       DB_USER: ${DB_USER:-postgres}
       DB_PASS: ${DB_PASS}
+      DB_SSL: ${DB_SSL:-false}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_PASSWORD: ""
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       CHROME_EXECUTABLE_PATH: /usr/bin/chromium-browser
       HEADLESS: "true"
-      AWS_REGION: ${AWS_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-ses}
-      TIKTOK_CLIENT_KEY: ${TIKTOK_CLIENT_KEY}
-      TIKTOK_CLIENT_SECRET: ${TIKTOK_CLIENT_SECRET}
-      YOUTUBE_CLIENT_ID: ${YOUTUBE_CLIENT_ID}
-      YOUTUBE_CLIENT_SECRET: ${YOUTUBE_CLIENT_SECRET}
-      ZALO_OA_APP_ID: ${ZALO_OA_APP_ID}
-      ZALO_OA_SECRET: ${ZALO_OA_SECRET}
-    # Puppeteer cần shared memory
+      AWS_REGION: ${AWS_REGION:-ap-southeast-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-placeholder}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-placeholder}
+      ZALO_OA_APP_ID: ${ZALO_OA_APP_ID:-placeholder}
+      ZALO_OA_SECRET: ${ZALO_OA_SECRET:-placeholder}
     shm_size: '1gb'
     cap_add:
       - SYS_ADMIN
@@ -120,35 +101,12 @@ services:
     networks:
       - internal
 
-  # ── Bull Board (Queue Monitor UI) ──────────────────────────────
-  bull-board:
-    image: deadly0/bull-board:latest
-    container_name: ma_bull_board
-    restart: always
-    depends_on:
-      - redis
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-    expose:
-      - "3000"
-    networks:
-      - internal
-      - dokploy-network
-    # Domain cho Bull Board: admin.yourdomain.com (thêm qua Dokploy UI)
-    # Nhớ thêm Basic Auth qua Traefik middleware để bảo mật!
-
 volumes:
   redis_data:
     driver: local
 
 networks:
-  # Internal network (services giao tiếp nội bộ, không expose ra ngoài)
   internal:
     driver: bridge
-    internal: true
-
-  # Dokploy managed network (Traefik có thể route traffic vào)
   dokploy-network:
     external: true
