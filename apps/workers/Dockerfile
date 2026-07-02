@@ -4,10 +4,10 @@
 # ══════════════════════════════════════════════════════
 
 # ── Stage 1: Install dependencies ─────────────────────
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/workers/package.json ./apps/workers/
@@ -15,10 +15,10 @@ COPY apps/workers/package.json ./apps/workers/
 RUN pnpm install --frozen-lockfile --filter workers...
 
 # ── Stage 2: Build ────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/workers/node_modules ./apps/workers/node_modules
@@ -27,7 +27,7 @@ COPY . .
 RUN pnpm --filter workers run build
 
 # ── Stage 3: Production runtime với Chromium ──────────
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 WORKDIR /app
 
 # Cài Chromium + dependencies cho Puppeteer
@@ -51,7 +51,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 # Non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S workers -u 1001
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/workers/package.json ./apps/workers/
