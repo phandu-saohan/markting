@@ -65,7 +65,10 @@ export class CreateCampaignDto {
   endAt?: string;
 }
 
-export class UpdateCampaignDto extends PartialType(CreateCampaignDto) {}
+export class UpdateCampaignDto extends PartialType(CreateCampaignDto) {
+  startAt?: string;
+  endAt?: string;
+}
 
 export class LaunchCampaignDto {
   @ApiProperty({ description: 'ID post template để đăng' })

@@ -12,12 +12,37 @@
     "db:seed": "pnpm --filter api run seed"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "turbo": "^2.0.0",
-    "typescript": "^5.4.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.4.0"
   },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.1078.0",
+    "@nestjs/bullmq": "^11.0.4",
+    "@nestjs/cli": "^11.0.23",
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/typeorm": "^11.0.3",
+    "@sendgrid/mail": "^8.1.6",
+    "axios": "^1.18.1",
+    "bullmq": "^5.79.2",
+    "class-transformer": "^0.5.1",
+    "ioredis": "^5.11.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "pg": "^8.22.0",
+    "playwright": "^1.61.1",
+    "puppeteer": "^25.3.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-anonymize-ua": "^2.4.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "typeorm": "^1.0.0",
+    "webdriverio": "^9.29.1"
   }
 }

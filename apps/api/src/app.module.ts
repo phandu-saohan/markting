@@ -12,8 +12,16 @@ import { PostsModule } from './modules/posts/posts.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { EmailListsModule } from './modules/email-lists/email-lists.module';
 
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 @Module({
   imports: [
+    // ── Static Assets ────────────────────────────────────────────────
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      exclude: ['/api/(.*)', '/admin/(.*)'],
+    }),
     // ── Config ──────────────────────────────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
@@ -33,7 +41,7 @@ import { EmailListsModule } from './modules/email-lists/email-lists.module';
         username: config.get('DB_USER', 'postgres'),
         password: config.get('DB_PASS', 'postgres'),
         autoLoadEntities: true,
-        synchronize: false,
+        synchronize: true,
         logging: false,
         ssl: config.get('DB_SSL') === 'true'
           ? { rejectUnauthorized: false }

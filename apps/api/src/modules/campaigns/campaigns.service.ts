@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Campaign, CampaignStatus } from './entities/campaign.entity';
 import { Group } from '../groups/entities/group.entity';
 import { Post } from '../posts/entities/post.entity';
@@ -105,7 +105,9 @@ export class CampaignsService {
       throw new BadRequestException('Campaign has no accounts configured');
     }
 
-    const groups = await this.groupRepo.findByIds(campaign.targetGroupIds);
+    const groups = await this.groupRepo.find({
+      where: { id: In(campaign.targetGroupIds) },
+    });
     const jobs: any[] = [];
 
     // Phân bổ tài khoản round-robin qua các nhóm

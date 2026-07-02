@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Automation Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-mode">
+  <!-- Auth Screen (overlay) -->
+  <div id="auth-screen" class="auth-overlay active">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="logo-icon">🚀</div>
+        <h2>Marketing Automation</h2>
+        <p>Log in or sign up to access your control panel</p>
+      </div>
+      <div class="tabs auth-tabs">
+        <button class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+        <button class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+      </div>
+      <form id="auth-form" onsubmit="handleAuth(event)">
+        <div class="form-group" id="name-group" style="display: none;">
+          <label for="auth-name">Full Name</label>
+          <input type="text" id="auth-name" placeholder="Nguyen Van A">
+        </div>
+        <div class="form-group">
+          <label for="auth-email">Email Address</label>
+          <input type="email" id="auth-email" required placeholder="name@yourdomain.com">
+        </div>
+        <div class="form-group">
+          <label for="auth-password">Password</label>
+          <input type="password" id="auth-password" required placeholder="••••••••" minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="auth-submit-btn">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard App -->
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo-emoji">🚀</span>
+        <span class="logo-text">MARKETING.AI</span>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" onclick="switchTab('overview')">
+          <span class="nav-icon">📊</span> Overview
+        </a>
+        <a href="#" class="nav-item" onclick="switchTab('accounts')">
+          <span class="nav-icon">👥</span> Accounts
+        </a>
+        <a href="#" class="nav-item" onclick="switchTab('scraper')">
+          <span class="nav-icon">🔍</span> FB Scraper
+        </a>
+        <a href="#" class="nav-item" onclick="switchTab('posts')">
+          <span class="nav-icon">📝</span> Post Manager
+        </a>
+        <a href="#" class="nav-item" onclick="switchTab('campaigns')">
+          <span class="nav-icon">🎯</span> Campaigns
+        </a>
+        <a href="#" class="nav-item" onclick="switchTab('emails')">
+          <span class="nav-icon">✉️</span> Bulk Email
+        </a>
+        <a href="#" class="nav-item" onclick="switchTab('proxies')">
+          <span class="nav-icon">🛡️</span> Proxies
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <span class="user-avatar">👤</span>
+          <div class="user-details">
+            <span id="user-display-name" class="user-name">Loading...</span>
+            <span id="user-display-role" class="user-role">Guest</span>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm btn-block" onclick="logout()">Log Out</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="top-bar">
+        <h1 id="page-title">System Overview</h1>
+        <div class="system-status">
+          <span class="status-indicator online"></span> API Server Online
+        </div>
+      </header>
+
+      <!-- TAB: Overview -->
+      <section id="tab-overview" class="tab-content active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon purple">👥</div>
+            <div class="stat-content">
+              <h3>Social Accounts</h3>
+              <p class="stat-value" id="stat-accounts-count">0</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">🔍</div>
+            <div class="stat-content">
+              <h3>Scraped Groups</h3>
+              <p class="stat-value" id="stat-groups-count">0</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">📝</div>
+            <div class="stat-content">
+              <h3>Total Posts</h3>
+              <p class="stat-value" id="stat-posts-count">0</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">⚡</div>
+            <div class="stat-content">
+              <h3>Active Campaigns</h3>
+              <p class="stat-value" id="stat-campaigns-count">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-charts">
+          <div class="chart-card">
+            <h2>Queue Progress</h2>
+            <div class="chart-container">
+              <canvas id="queue-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h2>System Resources</h2>
+            <div class="system-details-list">
+              <div class="detail-row">
+                <span>Database Connection</span>
+                <span class="status-badge success">Connected</span>
+              </div>
+              <div class="detail-row">
+                <span>Redis Server</span>
+                <span class="status-badge success">Connected</span>
+              </div>
+              <div class="detail-row">
+                <span>BullMQ Queue Status</span>
+                <span class="status-badge success">Listening</span>
+              </div>
+              <div class="detail-row">
+                <span>Active Workers Processes</span>
+                <span class="status-badge warning">1 Running</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Accounts -->
+      <section id="tab-accounts" class="tab-content">
+        <div class="panel-layout">
+          <!-- Form Panel -->
+          <div class="panel-form">
+            <h2>Add Social Account</h2>
+            <form id="add-account-form" onsubmit="addAccount(event)">
+              <div class="form-group">
+                <label for="acc-platform">Platform</label>
+                <select id="acc-platform" required onchange="toggleAccountFields()">
+                  <option value="facebook">Facebook</option>
+                  <option value="zalo">Zalo OA / Personal</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="youtube">YouTube</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="acc-name">Account Display Name</label>
+                <input type="text" id="acc-name" required placeholder="e.g. Account Chinh 01">
+              </div>
+              <div class="form-group">
+                <label for="acc-username">Username/Email/Phone</label>
+                <input type="text" id="acc-username" required placeholder="Account username">
+              </div>
+              <div class="form-group" id="pass-field-group">
+                <label for="acc-password">Password</label>
+                <input type="password" id="acc-password" placeholder="Account password">
+              </div>
+              <div class="form-group" id="token-field-group">
+                <label for="acc-token">Access Token / API Key</label>
+                <textarea id="acc-token" rows="2" placeholder="Paste access token here"></textarea>
+              </div>
+              <div class="form-group" id="cookie-field-group">
+                <label for="acc-cookies">Cookies (JSON String)</label>
+                <textarea id="acc-cookies" rows="3" placeholder='[{"name": "c_user", "value": "..."}]'></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Add Account</button>
+            </form>
+          </div>
+
+          <!-- List Panel -->
+          <div class="panel-list">
+            <h2>Active Accounts</h2>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Platform</th>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="accounts-table-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Scraper -->
+      <section id="tab-scraper" class="tab-content">
+        <div class="panel-layout">
+          <!-- Form Panel -->
+          <div class="panel-form">
+            <h2>Facebook Group Scraper</h2>
+            <p class="panel-desc">Scrape public/private Facebook groups matching targeted niches or keywords to feed posting campaigns.</p>
+            <form id="scraper-form" onsubmit="triggerScraper(event)">
+              <div class="form-group">
+                <label for="scrape-keyword">Keyword</label>
+                <input type="text" id="scrape-keyword" required placeholder="e.g., bat dong san Hanoi, mua ban xe">
+              </div>
+              <div class="form-group">
+                <label for="scrape-limit">Max Groups to Find</label>
+                <input type="number" id="scrape-limit" value="50" min="5" max="200">
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Launch Scraper Queue</button>
+            </form>
+
+            <div class="live-activity-log">
+              <h3>Live Scraper Status</h3>
+              <div class="log-output" id="scraper-log">
+                [System] Idle. Awaiting job trigger...
+              </div>
+            </div>
+          </div>
+
+          <!-- List Panel -->
+          <div class="panel-list">
+            <h2>Scraped Groups Pool</h2>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Group ID</th>
+                    <th>Members</th>
+                    <th>Privacy</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="groups-table-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Posts -->
+      <section id="tab-posts" class="tab-content">
+        <div class="panel-layout">
+          <!-- Form Panel -->
+          <div class="panel-form">
+            <h2>Compose Post Template</h2>
+            <form id="create-post-form" onsubmit="createPost(event)">
+              <div class="form-group">
+                <label for="post-platform">Platform Target</label>
+                <select id="post-platform" required>
+                  <option value="facebook_group">Facebook Group</option>
+                  <option value="facebook_fanpage">Facebook Fanpage</option>
+                  <option value="zalo_personal">Zalo Diary</option>
+                  <option value="zalo_oa">Zalo Official Account</option>
+                  <option value="tiktok">TikTok Video</option>
+                  <option value="youtube">YouTube Short</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="post-title">Post Title (Optional)</label>
+                <input type="text" id="post-title" placeholder="Give this template a name">
+              </div>
+              <div class="form-group">
+                <label for="post-content">Post Content / Caption</label>
+                <textarea id="post-content" rows="6" required placeholder="Write post text, links, descriptions..."></textarea>
+              </div>
+              <div class="form-group">
+                <label for="post-media">Media URLs (Comma separated)</label>
+                <input type="text" id="post-media" placeholder="http://example.com/image.jpg, http://example.com/video.mp4">
+              </div>
+              <div class="form-group">
+                <label for="post-media-type">Media Type</label>
+                <select id="post-media-type">
+                  <option value="none">None (Text Only)</option>
+                  <option value="image">Image(s)</option>
+                  <option value="video">Video</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Save Template</button>
+            </form>
+          </div>
+
+          <!-- List Panel -->
+          <div class="panel-list">
+            <h2>All Templates & Scheduled Posts</h2>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Platform</th>
+                    <th>Title</th>
+                    <th>Content</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="posts-table-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Campaigns -->
+      <section id="tab-campaigns" class="tab-content">
+        <div class="panel-layout">
+          <!-- Form Panel -->
+          <div class="panel-form">
+            <h2>Create Automation Campaign</h2>
+            <form id="create-campaign-form" onsubmit="createCampaign(event)">
+              <div class="form-group">
+                <label for="camp-name">Campaign Name</label>
+                <input type="text" id="camp-name" required placeholder="e.g. Campaign BDS thang 7">
+              </div>
+              <div class="form-group">
+                <label for="camp-desc">Description</label>
+                <input type="text" id="camp-desc" placeholder="Brief campaign targets">
+              </div>
+              <div class="form-group">
+                <label for="camp-platform">Platform</label>
+                <select id="camp-platform" required>
+                  <option value="facebook">Facebook Groups</option>
+                  <option value="zalo">Zalo OA</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="camp-delay-min">Min Delay Between Posts (Minutes)</label>
+                <input type="number" id="camp-delay-min" value="5" min="1" max="120">
+              </div>
+              <div class="form-group">
+                <label for="camp-delay-max">Max Delay Between Posts (Minutes)</label>
+                <input type="number" id="camp-delay-max" value="15" min="1" max="240">
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Save Campaign</button>
+            </form>
+          </div>
+
+          <!-- List Panel -->
+          <div class="panel-list">
+            <h2>Campaigns Control</h2>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Campaign Name</th>
+                    <th>Platform</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="campaigns-table-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Emails -->
+      <section id="tab-emails" class="tab-content">
+        <div class="panel-layout">
+          <!-- Form Panel -->
+          <div class="panel-form">
+            <h2>Send Bulk Email Campaign</h2>
+            <form id="send-email-form" onsubmit="sendEmails(event)">
+              <div class="form-group">
+                <label for="email-provider">SMTP / Gateway Provider</label>
+                <select id="email-provider" required>
+                  <option value="ses">AWS SES (Simple Email Service)</option>
+                  <option value="smtp">Standard SMTP Server</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="email-recipients">Recipients List (Comma separated)</label>
+                <textarea id="email-recipients" rows="3" required placeholder="client1@example.com, client2@example.com"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="email-subject">Email Subject</label>
+                <input type="text" id="email-subject" required placeholder="Enter email subject line">
+              </div>
+              <div class="form-group">
+                <label for="email-body">Email Content (HTML supported)</label>
+                <textarea id="email-body" rows="8" required placeholder="Write email body text or HTML..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Launch Email Queue</button>
+            </form>
+          </div>
+
+          <!-- List Panel -->
+          <div class="panel-list">
+            <h2>Bulk Email Logs</h2>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Subject</th>
+                    <th>Recipients Count</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="emails-table-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Proxies -->
+      <section id="tab-proxies" class="tab-content">
+        <div class="panel-layout">
+          <!-- Form Panel -->
+          <div class="panel-form">
+            <h2>Add Proxy IP</h2>
+            <form id="add-proxy-form" onsubmit="addProxy(event)">
+              <div class="form-group">
+                <label for="proxy-protocol">Protocol</label>
+                <select id="proxy-protocol" required>
+                  <option value="http">HTTP</option>
+                  <option value="socks5">SOCKS5</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="proxy-host">Host / IP Address</label>
+                <input type="text" id="proxy-host" required placeholder="e.g. 192.168.1.1">
+              </div>
+              <div class="form-group">
+                <label for="proxy-port">Port</label>
+                <input type="number" id="proxy-port" required placeholder="8080">
+              </div>
+              <div class="form-group">
+                <label for="proxy-username">Username (Optional)</label>
+                <input type="text" id="proxy-username" placeholder="Proxy username">
+              </div>
+              <div class="form-group">
+                <label for="proxy-password">Password (Optional)</label>
+                <input type="password" id="proxy-password" placeholder="Proxy password">
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Add Proxy</button>
+            </form>
+          </div>
+
+          <!-- List Panel -->
+          <div class="panel-list">
+            <h2>Proxy IPs Pool</h2>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>IP / Protocol</th>
+                    <th>Port</th>
+                    <th>Fails Count</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="proxies-table-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">Successfully completed!</div>
+
+  <script src="app.js"></script>
+</body>
+</html>

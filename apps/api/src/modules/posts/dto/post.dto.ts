@@ -50,7 +50,9 @@ export class CreatePostDto {
   meta?: Record<string, any>;
 }
 
-export class UpdatePostDto extends PartialType(CreatePostDto) {}
+export class UpdatePostDto extends PartialType(CreatePostDto) {
+  scheduledAt?: string;
+}
 
 export class SchedulePostDto {
   @ApiProperty({ description: 'ID bài viết cần lên lịch' })
